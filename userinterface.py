@@ -1,6 +1,82 @@
 import tkinter as tk
+import matplotlib.figure import Figure
+import matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+from MCP3008 import MCP3008
+from datetime import datetime
+import time
+import psycopg2
+import os
+
+DATABASE_URL = os.environ['DATABASE_URL']
+
+conn = None
+cur = None
+clinic_id = None
+patient_id = None
+ecg_id = None
+ecg_signal = List()
+dt = None
+page = 1
+adc = MCP3008()
+
 window = tk.Tk()
+def back_page():
+    match page:
+        case 2:
+            clinic_login.pack_forget()
+            clinic_id_entry.pack_forget()
+            clinic_id_submit.pack_forget()
+            greeting.pack()
+            bt_start.pack()
+        case 3:
+            patient_details_lbl.pack_forget()
+            first_lbl.pack_forget()
+            first_ent.pack_forget()
+            last_lbl.pack_forget()
+            last_ent.pack_forget()
+            gender_lbl.pack_forget()
+            gender_ent.pack_forget()
+            phone_lbl.pack_forget()
+            phone_ent.pack_forget()
+            dob_lbl.pack_forget()
+            dob_ent.pack_forget()
+            address_lbl.pack_forget()
+            address_txt.pack_forget()
+            patient_info_submit.pack_forget()
+            clinic_login.pack()
+            clinic_id_entry.pack()
+            clinic_id_submit.pack()
+        case 4:
+            ecg_lbl.pack_forget()
+            bt_ecg.pack_forget()
+            first_lbl.pack()
+            first_ent.pack()
+            last_lbl.pack()
+            last_ent.pack()
+            gender_lbl.pack()
+            gender_ent.pack()
+            phone_lbl.pack()
+            phone_ent.pack()
+            dob_lbl.pack()
+            dob_ent.pack()
+            address_lbl.pack()
+            address_txt.pack()
+            patient_info_submit.pack()
+        case 5:
+            bt_retake.pack_forget()
+            bt_save.pack_forget()
+            bt_discard.pack_forget()
+            ecg_lbl.pack()
+            bt_ecg.pack()
+
+
 def pg_two():
+    page = 2
+    frame = Frame(window)
+    frame.pack()
+    mainmenu = Menu(frame)
+    mainmenu.add_command(label = "Back", command= back_page)
+    window.config(menu = mainmenu)
     greeting.pack_forget()
     bt_start.pack_forget()
     clinic_login.pack()
@@ -8,26 +84,36 @@ def pg_two():
     clinic_id_submit.pack()
 
 def pg_three():
-    #eventually only works if clinic ID validated
-    clinic_login.pack_forget()
-    clinic_id_entry.pack_forget()
-    clinic_id_submit.pack_forget()
-    patient_details_lbl.pack()
-    first_lbl.pack()
-    first_ent.pack()
-    last_lbl.pack()
-    last_ent.pack()
-    gender_lbl.pack()
-    gender_ent.pack()
-    phone_lbl.pack()
-    phone_ent.pack()
-    dob_lbl.pack()
-    dob_ent.pack()
-    address_lbl.pack()
-    address_txt.pack()
-    patient_info_submit.pack()
-    
+    page = 3
+    make_connection()
+    clinic_id = clinic_id_entry.get()
+    if check_clinic_id(clinic_id)>0:
+        clinic_login.pack_forget()
+        clinic_id_entry.pack_forget()
+        clinic_id_submit.pack_forget()
+        patient_details_lbl.pack()
+        first_lbl.pack()
+        first_ent.pack()
+        last_lbl.pack()
+        last_ent.pack()
+        gender_lbl.pack()
+        gender_ent.pack()
+        phone_lbl.pack()
+        phone_ent.pack()
+        dob_lbl.pack()
+        dob_ent.pack()
+        address_lbl.pack()
+        address_txt.pack()
+        patient_info_submit.pack()
+    else:
+        error_lbl.pack()
+        clinic_login.pack()
+        clinic_id_entry.pack()
+        clinic_id_submit.pack()
+
 def pg_four():
+    page = 4
+    store_patient(first_ent.get(), last_ent.get(), gender_ent.get(), phone_ent.get(), dob_ent.get()) #address)
     patient_details_lbl.pack_forget()
     first_lbl.pack_forget()
     first_ent.pack_forget()
@@ -42,6 +128,62 @@ def pg_four():
     address_lbl.pack_forget()
     address_txt.pack_forget()
     patient_info_submit.pack_forget()
+    ecg_lbl.pack()
+    bt_ecg.pack()
+
+def return_to_patient_info():
+    patient_details_lbl.pack()
+    first_lbl.pack()
+    first_ent.pack()
+    last_lbl.pack()
+    last_ent.pack()
+    gender_lbl.pack()
+    gender_ent.pack()
+    phone_lbl.pack()
+    phone_ent.pack()
+    dob_lbl.pack()
+    dob_ent.pack()
+    address_lbl.pack()
+    address_txt.pack()
+    patient_info_submit.pack()
+
+def pg_five():
+    page = 5
+    run_ecg()
+    plot_ecg()
+    bt_retake.pack()
+    bt_save.pack()
+    bt_discard.pack()
+    link_records() #no links to doctor table currently
+    return_to_patient_info()
+
+def plot_ecg():
+    fig = Figure(figsize = (50,25), dpi = 1000)
+    fig.clf()
+    t = [i/360 for i in range(3601)]
+    x = ecg_signal
+    plot = fig.add_subplot(111, clear = true)
+    plot.plot(x,t)
+
+    canvas =FigureCanvasTkAgg(fig, master = window)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
+    toolbar = NavigationToolbar2Tk(canvas,window)
+    toolbar.update()
+    canvas.get_tk_widget().pack()
+
+def run_ecg():
+    ecg_signal = List()
+    #need to control sample speed
+    for i in range(3601):
+        value = adc.read(channel = 0)
+        ecg_signal.append(value/1023.0 * 3.3)
+        time.sleep(1/360)
+    dt = datetime.now()
+
+def redo_ecg():
+    run_ecg()
+    plot_ecg()
 
 greeting = tk.Label(
     text="Remote Heart Diagnosis System",
@@ -70,13 +212,13 @@ patient_info_submit = tk.Button(
     command = pg_four
 )
 clinic_id_entry = tk.Entry(width = 50)
-#Patient enters first, last, gender, phone, dob, address
+#Patient enters first, last, gender, phone, dob, address - improve entry data types??
 patient_details_lbl = tk.Label(text="Patient Information")
 first_lbl = tk.Label(text="First name:")
 first_ent = tk.Entry(width=50)
 last_lbl = tk.Label(text="Last name:")
 last_ent = tk.Entry(width=50)
-gender_lbl = tk.Label(text="Gender:")
+gender_lbl = tk.Label(text="Gender (M (male), F (female), O (other)):")
 gender_ent = tk.Entry(width=5)
 phone_lbl = tk.Label(text="Phone Number:")
 phone_ent = tk.Entry(width=25)
@@ -85,8 +227,73 @@ dob_ent = tk.Entry(width=25)
 address_lbl = tk.Label(text="Address:")
 address_txt = tk.Text(width=50, height=10)
 
+ecg_lbl = tk.Label(text="Please connect the probes to the patient and click below to begin the ECG reading.", width=50)
+bt_ecg = tk.Button(
+    text="Start ECG",
+    width=20,
+    height = 5,
+    command = pg_five
+)
+
+bt_retake = tk.Button(
+    text="Retake",
+    width=20,
+    height = 5,
+    command = redo_ecg
+)
+bt_save = tk.Button(
+    text="Save",
+    width=20,
+    height = 5,
+    command = store_ecg
+)
+bt_discard = tk.Button(
+    text="Discard",
+    width=20,
+    height = 5,
+    command = return_to_patient_info
+)
+
+error_lbl = tk.Label(text="Please try again")
+
 greeting.pack()
 bt_start.pack()
 
+
 window.mainloop()
 
+#need power on/off triggers - start GUI, turn off display, end database connection
+
+def make_connection():
+    conn = psycopg2.connect(
+        DATABASE_URL, sslmode='require')
+
+    cur = conn.cursor()
+
+def check_clinic_id(clin_id):
+    cur.execute("SELECT COUNT(name) FROM Clinic WHERE clinic_id = %s",clin_id)
+    exists = cur.fetchone()[0]
+    conn.commit()
+    return exists
+
+def store_patient(first, last, gender, phone, dob):
+    #fix data types for values
+    cur.execute("INSERT INTO Patient(first_name, last_name, gender, phone, dob) VALUES(%s,%s,%s,%s,%s) RETURNING patientID", (first, last, gender, phone, dob))
+    patient_id = cur.fetchone()[0]
+    conn.commit()
+
+def store_ecg():
+    #needs work- data types on values, where pulled from, ml?
+    cur.execute("INSERT INTO ECG_Reading(reading, date_time_taken) VALUES(%s,%s) RETURNING ecgID", (reading, dt))
+    ecg_id = cur.fetchone()[0]
+    conn.commit()
+
+def link_records():
+    cur.execute("INSERT INTO Receives(patientID, ecgID) VALUES(%i,%i)",(patient_id,ecg_id))
+    cur.execute("INSERT INTO Performs(ecgID, clinicID) VALUES(%i,%i)",(ecg_id, clinic_id))
+    cur.execute("INSERT INTO Clinic_Patient(patientID, clinicID) VALUES(%i,%i)",(patient_id,clinic_id))
+    conn.commit()
+
+def end_connection():
+    cur.close()
+    conn.close()
