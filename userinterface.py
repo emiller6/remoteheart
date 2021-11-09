@@ -1,6 +1,6 @@
 import tkinter as tk
-import matplotlib.figure import Figure
-import matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from MCP3008 import MCP3008
 from datetime import datetime
 import time
@@ -28,6 +28,7 @@ def back_page():
             clinic_id_submit.pack_forget()
             greeting.pack()
             bt_start.pack()
+            exit()
         case 3:
             patient_details_lbl.pack_forget()
             first_lbl.pack_forget()
@@ -46,6 +47,7 @@ def back_page():
             clinic_login.pack()
             clinic_id_entry.pack()
             clinic_id_submit.pack()
+            exit()
         case 4:
             ecg_lbl.pack_forget()
             bt_ecg.pack_forget()
@@ -62,12 +64,14 @@ def back_page():
             address_lbl.pack()
             address_txt.pack()
             patient_info_submit.pack()
+            exit()
         case 5:
             bt_retake.pack_forget()
             bt_save.pack_forget()
             bt_discard.pack_forget()
             ecg_lbl.pack()
             bt_ecg.pack()
+            exit()
 
 
 def pg_two():
@@ -267,7 +271,7 @@ window.mainloop()
 def make_connection():
     conn = psycopg2.connect(
         DATABASE_URL, sslmode='require')
-
+        #may need more to this
     cur = conn.cursor()
 
 def check_clinic_id(clin_id):
