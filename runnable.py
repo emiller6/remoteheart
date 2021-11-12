@@ -15,7 +15,7 @@ page = 1
 
 
 window = tk.Tk()
-window.geometry("1000x1500")
+window.geometry("800x480")
 
 def make_connection():
     pass
@@ -139,7 +139,7 @@ def redo_ecg():
 greeting = tk.Label(
     text="Remote Heart Diagnosis System",
     width=100,
-    height = 13,
+    height = 7,
     font=("Chalkboard",40)
     )
 clinic_login = tk.Label(
@@ -148,8 +148,8 @@ clinic_login = tk.Label(
     height=5)
 bt_start = tk.Button(
     text="Get Started",
-    width=25,
-    height = 7,
+    width=20,
+    height = 4,
     fg='white',
     highlightbackground='green',
     font=("Chalkboard",35),
