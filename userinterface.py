@@ -6,8 +6,15 @@ from datetime import datetime
 import time
 import psycopg2
 import os
+import subprocess
 
-DATABASE_URL = os.environ['DATABASE_URL']
+heroku_app_name = "remoteheart"
+raw_db_url = subprocess.run(
+    ["heroku", "config:get", "DATABASE_URL", "--app", heroku_app_name],
+    capture_output=True
+).stdout
+
+DATABASE_URL = raw_db_url
 
 conn = None
 cur = None
@@ -158,7 +165,7 @@ def pg_five():
     bt_retake.pack()
     bt_save.pack()
     bt_discard.pack()
-    link_records() #no links to doctor table currently
+    link_records()
     return_to_patient_info()
 
 def plot_ecg():
@@ -263,9 +270,6 @@ error_lbl = tk.Label(text="Please try again")
 greeting.pack()
 bt_start.pack()
 
-
-window.mainloop()
-
 #need power on/off triggers - start GUI, turn off display, end database connection
 
 def make_connection():
@@ -280,24 +284,34 @@ def check_clinic_id(clin_id):
     conn.commit()
     return exists
 
+def find_patient(first, last, dob, phone):
+    if phone != NULL:
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s AND phone = %s",first, last, dob, phone)
+    else:
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s",first, last, dob)
+    exists = cur.fetchone()[0]
+    conn.commit()
+    return exists
+
 def store_patient(first, last, gender, phone, dob):
     #fix data types for values
-    cur.execute("INSERT INTO Patient(first_name, last_name, gender, phone, dob) VALUES(%s,%s,%s,%s,%s) RETURNING patientID", (first, last, gender, phone, dob))
+    cur.execute("INSERT INTO Patient(first_name, last_name, gender, phone, dob) VALUES(%s,%s,%s,%s,%s) RETURNING patient_id", (first, last, gender, phone, dob))
     patient_id = cur.fetchone()[0]
     conn.commit()
 
 def store_ecg():
-    #needs work- data types on values, where pulled from, ml?
-    cur.execute("INSERT INTO ECG_Reading(reading, date_time_taken) VALUES(%s,%s) RETURNING ecgID", (reading, dt))
+    #needs work- data types on values, ml?
+    cur.execute("INSERT INTO ECG_Reading(reading, date_time_taken) VALUES(${ecg_signal},${dt}) RETURNING ecg_id")
     ecg_id = cur.fetchone()[0]
     conn.commit()
 
 def link_records():
-    cur.execute("INSERT INTO Receives(patientID, ecgID) VALUES(%i,%i)",(patient_id,ecg_id))
-    cur.execute("INSERT INTO Performs(ecgID, clinicID) VALUES(%i,%i)",(ecg_id, clinic_id))
-    cur.execute("INSERT INTO Clinic_Patient(patientID, clinicID) VALUES(%i,%i)",(patient_id,clinic_id))
+    cur.execute("INSERT INTO TakeMeasurement(patient_id, ecg_id, clinic_id) VALUES(%i,%i)",(patient_id,ecg_id, clinic_id))
     conn.commit()
 
 def end_connection():
     cur.close()
     conn.close()
+
+
+window.mainloop()
