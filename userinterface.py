@@ -3,6 +3,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from MCP3008 import MCP3008
 from datetime import datetime
+from tkcalendar import Calendar
 import time
 import psycopg2
 import os
@@ -191,6 +192,7 @@ def run_ecg():
         ecg_signal.append(value/1023.0 * 3.3)
         time.sleep(1/360)
     dt = datetime.now()
+    dt = datetime.timestamp(dt)
 
 def redo_ecg():
     run_ecg()
@@ -286,27 +288,26 @@ def check_clinic_id(clin_id):
 
 def find_patient(first, last, dob, phone):
     if phone != NULL:
-        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s AND phone = %s",first, last, dob, phone)
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = ${dob} AND phone = %s",first, last, dob, phone)
     else:
-        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s",first, last, dob)
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = ${dob}",first, last)
     exists = cur.fetchone()[0]
     conn.commit()
     return exists
 
 def store_patient(first, last, gender, phone, dob):
-    #fix data types for values
-    cur.execute("INSERT INTO Patient(first_name, last_name, gender, phone, dob) VALUES(%s,%s,%s,%s,%s) RETURNING patient_id", (first, last, gender, phone, dob))
+    date_birth = datetime.strptime(dob, '%m/%d/%y')
+    cur.execute("INSERT INTO Patient(first_name, last_name, gender, phone, dob) VALUES(%s,%s,%s,%s,${date_birth}) RETURNING patient_id", (first, last, gender, phone))
     patient_id = cur.fetchone()[0]
     conn.commit()
 
 def store_ecg():
-    #needs work- data types on values, ml?
     cur.execute("INSERT INTO ECG_Reading(reading, date_time_taken) VALUES(${ecg_signal},${dt}) RETURNING ecg_id")
     ecg_id = cur.fetchone()[0]
     conn.commit()
 
 def link_records():
-    cur.execute("INSERT INTO TakeMeasurement(patient_id, ecg_id, clinic_id) VALUES(%i,%i)",(patient_id,ecg_id, clinic_id))
+    cur.execute("INSERT INTO TakeMeasurement(patient_id, ecg_id, clinic_id) VALUES(%i,%i, %i)",(patient_id,ecg_id, clinic_id))
     conn.commit()
 
 def end_connection():
