@@ -21,10 +21,21 @@ def make_connection():
     pass
 
 def check_clinic_id(clin_id):
+    print("Clinic ID: ")
+    print(clin_id)
     return 1
 
 def store_patient(first, last, gender, phone, dob):
-    pass
+    print("First: ")
+    print(first)
+    print("Last: ")
+    print(last)
+    print("Gender: ")
+    print(gender)
+    print ("Phone: ")
+    print(phone)
+    print("DOB: ")
+    print(dob)
 
 def store_ecg():
     pass
@@ -140,7 +151,7 @@ greeting = tk.Label(
     text="Remote Heart Diagnosis System",
     width=100,
     height = 7,
-    font=("Chalkboard",40)
+    font=("Chalkboard",20)
     )
 clinic_login = tk.Label(
     text="Please enter your Clinic ID",
@@ -152,7 +163,7 @@ bt_start = tk.Button(
     height = 4,
     fg='white',
     highlightbackground='green',
-    font=("Chalkboard",35),
+    font=("Chalkboard",20),
     command = pg_two
 )
 clinic_id_submit = tk.Button(
@@ -164,7 +175,7 @@ clinic_id_submit = tk.Button(
 patient_info_submit = tk.Button(
     text="Submit",
     width=20,
-    height = 5,
+    height = 2,
     command = pg_four
 )
 clinic_id_entry = tk.Entry(width = 50)
@@ -181,7 +192,7 @@ phone_ent = tk.Entry(width=25)
 dob_lbl = tk.Label(text="Date of Birth (MMDDYYYY):")
 dob_ent = tk.Entry(width=25)
 address_lbl = tk.Label(text="Address:")
-address_txt = tk.Text(width=50, height=10)
+address_txt = tk.Text(width=50, height=3)
 
 ecg_lbl = tk.Label(text="Please connect the probes to the patient and click below to begin the ECG reading.")
 bt_ecg = tk.Button(
