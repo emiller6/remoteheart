@@ -148,49 +148,56 @@ def redo_ecg():
     plot_ecg()
 
 greeting = tk.Label(
-    text="Remote Heart Diagnosis System",
+    text="Welcome!\n\n Let's get started with your ECG.",
     width=100,
     height = 7,
-    font=("Chalkboard",20)
+    font=("Gill Sans Light",40)
     )
 clinic_login = tk.Label(
-    text="Please enter your Clinic ID",
+    text="\n\n\nPlease enter your Clinic ID.\n",
     width=100,
-    height=5)
+    height=5,
+    font=("Gill Sans Light", 30)
+    )
 bt_start = tk.Button(
-    text="Get Started",
+    text="Begin",
     width=20,
-    height = 4,
+    height = 2,
     fg='white',
-    highlightbackground='green',
-    font=("Chalkboard",20),
+    highlightbackground='navy blue',
+    font=("Gill Sans SemiBold",20),
     command = pg_two
 )
 clinic_id_submit = tk.Button(
     text="Submit",
+    font=("Gill Sans SemiBold",20),
+    fg='white',
+    highlightbackground='navy blue',
     width=20,
-    height = 5,
+    height = 2,
     command = pg_three
 )
 patient_info_submit = tk.Button(
     text="Submit",
+    font=("Gill Sans SemiBold",20),
     width=20,
     height = 2,
     command = pg_four
 )
-clinic_id_entry = tk.Entry(width = 50)
+clinic_id_entry = tk.Entry(width = 20)
 #Patient enters first, last, gender, phone, dob, address - improve entry data types??
 patient_details_lbl = tk.Label(text="Patient Information")
+#font=("Gill Sans SemiBold",20),
 first_lbl = tk.Label(text="First name:")
-first_ent = tk.Entry(width=50)
+first_ent = tk.Entry(width=20)
 last_lbl = tk.Label(text="Last name:")
-last_ent = tk.Entry(width=50)
+last_ent = tk.Entry(width=20)
 gender_lbl = tk.Label(text="Gender (M (male), F (female), O (other)):")
 gender_ent = tk.Entry(width=5)
 phone_lbl = tk.Label(text="Phone Number:")
-phone_ent = tk.Entry(width=25)
+phone_ent = tk.Entry(width=20)
 dob_lbl = tk.Label(text="Date of Birth (MMDDYYYY):")
-dob_ent = tk.Entry(width=25)
+dob_ent = tk.Entry(width=10)
 address_lbl = tk.Label(text="Address:")
 address_txt = tk.Text(width=50, height=3)
 
