@@ -1,9 +1,7 @@
 import tkinter as tk
 from datetime import datetime
 import time
-
-
-
+import psycopg2
 
 conn = None
 cur = None
@@ -13,17 +11,41 @@ ecg_id = None
 dt = None
 page = 1
 
-
 window = tk.Tk()
 window.geometry("800x480")
 
 def make_connection():
-    pass
+    conn = psycopg2.connect(
+        database="my_database_name",
+        user="my_user_name",
+        password="pass",
+        host="url",
+        port='5432'
+    )
+    cur = conn.cursor()
 
-def check_clinic_id(clin_id):
+def check_clinic_id():
     print("Clinic ID: ")
-    print(clin_id)
-    return 1
+    print(clinic_id)
+    make_connection()
+    cur.execute("select clinic_id from Clinic where clinic_id == "+str(clinic_id))
+    matching_clinics = cur.fetchall()
+    conn.commit()
+    end_connection()
+    if(matching_clinics.length >= 1)
+        return 1
+    return 0
+
+def find_patient(first, last, dob, phone):
+    make_connection()
+    if phone != NULL:
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = ${dob} AND phone = %s",first, last, dob, phone)
+    else:
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = ${dob}",first, last)
+    exists = cur.fetchone()[0]
+    conn.commit()
+    end_connection()
+    return exists
 
 def store_patient(first, last, gender, phone, dob):
     print("First: ")
@@ -36,15 +58,25 @@ def store_patient(first, last, gender, phone, dob):
     print(phone)
     print("DOB: ")
     print(dob)
+    make_connection()
+    sql = "INSERT INTO Patient(first_name, last_name, gender, dob, phone) VALUES (%s, %s, %s, %s, %s) RETURNING patient_id"
+    cur.execute(sql, (first,last,gender,dob,phone))
+    patient_id = cur.fetchone()[0]
+    conn.commit()
+    end_connection()
 
 def store_ecg():
     pass
 
 def link_records():
-    pass
+    make_connection()
+    cur.execute("INSERT INTO TakeMeasurement(patient_id, ecg_id, clinic_id) VALUES(%i,%i, %i)",(patient_id,ecg_id, clinic_id))
+    conn.commit()
+    end_connection()
 
 def end_connection():
-    pass
+    cur.close()
+    conn.close()
 
 def pg_two():
     page = 2
@@ -63,7 +95,7 @@ def pg_three():
     page = 3
     make_connection()
     clinic_id = clinic_id_entry.get()
-    if check_clinic_id(clinic_id)>0:
+    if check_clinic_id()>0:
         clinic_login.pack_forget()
         clinic_id_entry.pack_forget()
         clinic_id_submit.pack_forget()
@@ -219,7 +251,7 @@ bt_save = tk.Button(
     text="Save",
     width=20,
     height = 5,
-    command = store_ecg()
+    command = store_ecg
 )
 bt_discard = tk.Button(
     text="Discard",
