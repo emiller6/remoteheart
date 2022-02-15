@@ -77,7 +77,7 @@ def store_patient(first, last, gender, phone, dob):
     pass
 
 def store_ecg():
-    pass
+    fig.close()
 
 def link_records():
     #make_connection()
@@ -242,6 +242,10 @@ def return_to_patient_info():
     patient_info_submit.place(x=270, y=230)
     show_keyboard()
 
+def discard():
+    fig.close()
+    return_to_patient_info()
+
 def pg_five():
     ecg_lbl.pack_forget()
     bt_ecg.pack_forget()
@@ -256,6 +260,8 @@ def pg_five():
 def plot_ecg():
     global ecg_signal
     global window
+    global fig
+    close('all')
     fig = Figure(figsize = (50,25), dpi = 1000)
     fig.clf()
     t = [i/360 for i in range(3601)]
@@ -274,6 +280,7 @@ def run_ecg():
     pass
 
 def redo_ecg():
+    fig.close()
     run_ecg()
     plot_ecg()
 
@@ -376,7 +383,7 @@ bt_discard = tk.Button(
     text="Discard",
     width=20,
     height = 5,
-    command = return_to_patient_info
+    command = discard
 )
 
 error_lbl = tk.Label(text="Please try again")
