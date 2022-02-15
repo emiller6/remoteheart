@@ -20,6 +20,7 @@ focused_entry = None
 page = 1
 keyboard_window = None
 uppercase = False
+exists = False
 
 def pay_attention(event):
     global focused_entry
@@ -179,20 +180,23 @@ def pg_three():
         clinic_login.pack_forget()
         clinic_id_entry.pack_forget()
         clinic_id_submit.pack_forget()
-        patient_details_lbl.place(x=280, y=5)
-        first_lbl.place(x=130, y=55)
-        first_ent.place(x=210, y=55)
-        last_lbl.place(x=410, y=55)
-        last_ent.place(x=500, y=55)
-        gender_lbl.place(x=150, y=85)
-        gender_ent.place(x=410, y=85)
-        phone_lbl.place(x=305, y=115)
-        phone_ent.place(x=410, y=115)
-        dob_lbl.place(x=230, y=145)
-        dob_ent.place(x=410, y=145)
-        address_lbl.place(x=345, y=175)
-        address_txt.place(x=410, y=175)
-        patient_info_submit.place(x=270, y=230)
+        new_p.pack()
+        existing_p.pack()
+        #patient_details_lbl.place(x=280, y=5)
+        #first_lbl.place(x=130, y=55)
+        #first_ent.place(x=210, y=55)
+        #last_lbl.place(x=410, y=55)
+        #last_ent.place(x=500, y=55)
+        #gender_lbl.place(x=150, y=85)
+        #gender_ent.place(x=410, y=85)
+        #phone_lbl.place(x=305, y=115)
+        #phone_ent.place(x=410, y=115)
+        #dob_lbl.place(x=230, y=145)
+        #dob_ent.place(x=410, y=145)
+        #address_lbl.place(x=345, y=175)
+        #address_txt.place(x=410, y=175)
+        #patient_info_submit.place(x=270, y=230)
+
     else:
         page = 2
         error_lbl.pack()
@@ -200,9 +204,48 @@ def pg_three():
         clinic_id_entry.pack()
         clinic_id_submit.pack()
 
+def existing_patient():
+    global exists
+    exists = True
+    new_p.pack_forget()
+    existing_p.pack_forget()
+    patient_details_lbl.place(x=280, y=5)
+    first_lbl.place(x=130, y=55)
+    first_ent.place(x=210, y=55)
+    last_lbl.place(x=410, y=55)
+    last_ent.place(x=500, y=55)
+    phone_lbl.place(x=305, y=115)
+    phone_ent.place(x=410, y=115)
+    dob_lbl.place(x=230, y=145)
+    dob_ent.place(x=410, y=145)
+    patient_info_submit.place(x=270, y=230)
+
+def new_patient():
+    global exists
+    exists = False
+    new_p.pack_forget()
+    existing_p.pack_forget()
+    patient_details_lbl.place(x=280, y=5)
+    first_lbl.place(x=130, y=55)
+    first_ent.place(x=210, y=55)
+    last_lbl.place(x=410, y=55)
+    last_ent.place(x=500, y=55)
+    gender_lbl.place(x=150, y=85)
+    gender_ent.place(x=410, y=85)
+    phone_lbl.place(x=305, y=115)
+    phone_ent.place(x=410, y=115)
+    dob_lbl.place(x=230, y=145)
+    dob_ent.place(x=410, y=145)
+    address_lbl.place(x=345, y=175)
+    address_txt.place(x=410, y=175)
+    patient_info_submit.place(x=270, y=230)
+
 def pg_four():
     page = 4
-    store_patient(first_ent.get(), last_ent.get(), gender_ent.get(), phone_ent.get(), dob_ent.get()) #address)
+    if exists:
+        find_patient(first_ent.get(), last_ent.get(), phone_ent.get(), dob_ent.get())
+    else:
+        store_patient(first_ent.get(), last_ent.get(), gender_ent.get(), phone_ent.get(), dob_ent.get()) #address)
     hide_keyboard()
     patient_details_lbl.place_forget()
     first_lbl.place_forget()
@@ -384,6 +427,19 @@ bt_discard = tk.Button(
     width=20,
     height = 5,
     command = discard
+)
+
+cur_p = tk.Button(
+    text="Existing Patient",
+    width=20,
+    height = 5,
+    command = existing_patient
+)
+new_p = tk.Button(
+    text="New Patient",
+    width=20,
+    height = 5,
+    command = new_patient()
 )
 
 error_lbl = tk.Label(text="Please try again")
