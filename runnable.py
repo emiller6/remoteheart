@@ -8,6 +8,8 @@ import pyautogui
 import psycopg2
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+import matplotlib.pyplot
+import numpy
 
 conn = None
 cur = None
@@ -21,6 +23,8 @@ page = 1
 keyboard_window = None
 uppercase = False
 exists = False
+error_called = False
+
 
 def pay_attention(event):
     global focused_entry
@@ -53,17 +57,25 @@ def check_clinic_id():
         return 1
     return 0
 
-def find_patient(first, last, dob, phone):
+def find_patient(first, last, phone, dob):
     make_connection()
-    dob_date = psycopg2.Date(int(dob[4:8]), int(dob[0:2]), int(dob[2:4]))
-    if phone != NULL:
-        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s AND phone = %s",first, last, dob_date, phone)
-    else:
-        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s",first, last, dob_date)
-    exists = cur.fetchone()[0]
+    cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s AND phone = %s", (first, last, psycopg2.Date(int(dob[4:8]), int(dob[0:2]), int(dob[2:4])), phone))
+    patient_id = cur.fetchone()[0]
+    print(patient_id)
     conn.commit()
     end_connection()
-    return exists
+    if patient_id<=0:
+        patient_details_lbl.place_forget()
+        first_lbl.place_forget()
+        first_ent.place_forget()
+        last_lbl.place_forget()
+        last_ent.place_forget()
+        phone_lbl.place_forget()
+        phone_ent.place_forget()
+        dob_lbl.place_forget()
+        dob_ent.place_forget()
+        patient_info_submit.place_forget()
+        new_patient()
 
 def store_patient(first, last, gender, phone, dob):
     global cur
@@ -75,7 +87,6 @@ def store_patient(first, last, gender, phone, dob):
     patient_id = cur.fetchone()[0]
     conn.commit()
     end_connection()
-    pass
 
 def store_ecg():
     fig.close()
@@ -173,15 +184,20 @@ def pg_two():
     show_keyboard()
 
 def pg_three():
+    global new_p
+    global cur_p
     global clinic_id
+    global error_called
     page = 3
     clinic_id = clinic_id_entry.get()
     if check_clinic_id()>0:
+        if error_called:
+            error_lbl.pack_forget()
         clinic_login.pack_forget()
         clinic_id_entry.pack_forget()
         clinic_id_submit.pack_forget()
         new_p.pack()
-        existing_p.pack()
+        cur_p.pack()
         #patient_details_lbl.place(x=280, y=5)
         #first_lbl.place(x=130, y=55)
         #first_ent.place(x=210, y=55)
@@ -199,6 +215,7 @@ def pg_three():
 
     else:
         page = 2
+        error_called = True
         error_lbl.pack()
         clinic_login.pack()
         clinic_id_entry.pack()
@@ -208,7 +225,7 @@ def existing_patient():
     global exists
     exists = True
     new_p.pack_forget()
-    existing_p.pack_forget()
+    cur_p.pack_forget()
     patient_details_lbl.place(x=280, y=5)
     first_lbl.place(x=130, y=55)
     first_ent.place(x=210, y=55)
@@ -224,7 +241,7 @@ def new_patient():
     global exists
     exists = False
     new_p.pack_forget()
-    existing_p.pack_forget()
+    cur_p.pack_forget()
     patient_details_lbl.place(x=280, y=5)
     first_lbl.place(x=130, y=55)
     first_ent.place(x=210, y=55)
@@ -304,7 +321,6 @@ def plot_ecg():
     global ecg_signal
     global window
     global fig
-    close('all')
     fig = Figure(figsize = (50,25), dpi = 1000)
     fig.clf()
     t = [i/360 for i in range(3601)]
@@ -439,7 +455,7 @@ new_p = tk.Button(
     text="New Patient",
     width=20,
     height = 5,
-    command = new_patient()
+    command = new_patient
 )
 
 error_lbl = tk.Label(text="Please try again")
