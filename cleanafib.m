@@ -20,6 +20,3 @@ for j=1:2*length(recs)
 end
 
 save('afib.mat','afib');
-load('github_repo/ECGData/ECGData.mat');
-ECGData.Data = [ECGData.Data; afib];
-ECGData.Labels = [ECGData.Labels; lbls];
