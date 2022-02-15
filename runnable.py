@@ -6,13 +6,15 @@ from datetime import datetime
 import time
 import pyautogui
 import psycopg2
-
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 conn = None
 cur = None
 clinic_id = None
 patient_id = None
 ecg_id = None
+ecg_signal = [i/100 for i in range(3601)]
 dt = None
 focused_entry = None
 page = 1
@@ -41,21 +43,22 @@ def make_connection():
 def check_clinic_id():
     print("Clinic ID: ")
     print(clinic_id)
-    #make_connection()
-    #cur.execute("select clinic_id from clinic where clinic_id = "+str(clinic_id))
-    #matching_clinics = cur.fetchall()
-    #conn.commit()
-    #end_connection()
-    #if len(matching_clinics) >= 1:
-    return 1
-    #return 0
+    make_connection()
+    cur.execute("select clinic_id from clinic where clinic_id = "+str(clinic_id))
+    matching_clinics = cur.fetchall()
+    conn.commit()
+    end_connection()
+    if len(matching_clinics) >= 1:
+        return 1
+    return 0
 
 def find_patient(first, last, dob, phone):
     make_connection()
+    dob_date = psycopg2.Date(int(dob[4:8]), int(dob[0:2]), int(dob[2:4]))
     if phone != NULL:
-        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = ${dob} AND phone = %s",first, last, dob, phone)
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s AND phone = %s",first, last, dob_date, phone)
     else:
-        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = ${dob}",first, last)
+        cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s",first, last, dob_date)
     exists = cur.fetchone()[0]
     conn.commit()
     end_connection()
@@ -65,29 +68,20 @@ def store_patient(first, last, gender, phone, dob):
     global cur
     global conn
     global patient_id
-    print("First: ")
-    print(first)
-    print("Last: ")
-    print(last)
-    print("Gender: ")
-    print(gender)
-    print ("Phone: ")
-    print(phone)
-    print("DOB: ")
-    print(dob)
     make_connection()
     sql = "INSERT INTO Patient(first_name, last_name, gender, dob, phone) VALUES (%s, %s, %s, %s, %s) RETURNING patient_id"
-    cur.execute(sql, (first,last,gender,dob,phone))
+    cur.execute(sql, (first,last,gender,psycopg2.Date(int(dob[4:8]), int(dob[0:2]), int(dob[2:4])),phone))
     patient_id = cur.fetchone()[0]
     conn.commit()
     end_connection()
+    pass
 
 def store_ecg():
     pass
 
 def link_records():
     #make_connection()
-    #cur.execute("INSERT INTO TakeMeasurement(patient_id, ecg_id, clinic_id) VALUES(%i,%i, %i)",(patient_id,ecg_id, clinic_id))
+    #cur.execute("INSERT INTO TakeMeasurement(patient_id, ecg_id, clinic_id) VALUES(%s, %s, %s)",(patient_id,ecg_id, clinic_id))
     #conn.commit()
     #end_connection()
     pass
@@ -260,7 +254,21 @@ def pg_five():
     link_records()
 
 def plot_ecg():
-    pass
+    global ecg_signal
+    global window
+    fig = Figure(figsize = (50,25), dpi = 1000)
+    fig.clf()
+    t = [i/360 for i in range(3601)]
+    x = ecg_signal
+    plot = fig.add_subplot(111)
+    plot.plot(x,t)
+
+    canvas =FigureCanvasTkAgg(fig, master = window)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
+    toolbar = NavigationToolbar2Tk(canvas,window)
+    toolbar.update()
+    canvas.get_tk_widget().pack()
 
 def run_ecg():
     pass
