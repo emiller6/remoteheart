@@ -10,9 +10,9 @@ fclose(fid);
 afib = {};
 y = 0;
 for i=1:length(recs)
-     tmp = matfile(strcat('training2017/',convertStringsToChars(recs(i,:)),'.mat')).val;
+     [time, signal, Fs, siginfo] = rdmat(strcat('training2017/',convertStringsToChars(recs(i,:)),'.mat')).val;
+     tmp = signal;
      tmp(1,:) = tmp(1,:)./1000;
-     %make sure conversion is correct 16+24 and 16 bit
      afib = {afib; tmp};
 end
 

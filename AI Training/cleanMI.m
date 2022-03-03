@@ -11,13 +11,12 @@ fclose(fid);
 mi = zeros(2*length(recs),65536);
 y = 0;
 for i=1:length(recs)
-    tmp = matfile(strcat('mi/',convertStringsToChars(recs(i)),'m.mat')).val;
+    [time, signal, Fs, siginfo] = rdmat(strcat('mi/',convertStringsToChars(recs(i)),'m.mat')).val;
+    tmp = signal;
     for x=1:2
         y = y+1;
-        %ADC conversion --- ensure this is correct for 16+24 format (24 =
-        %byte offset) and 12-bit resolution
         tmp(x,:) = tmp(x,:)./200;
-        tmp_2 = resample(tmp(x,:),128,250);
+        tmp_2 = resample(tmp(x,:),128,Fs);
         afib(y,:) = tmp_2(1:65536);
     end
 end

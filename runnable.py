@@ -24,6 +24,8 @@ keyboard_window = None
 uppercase = False
 exists = False
 error_called = False
+plot = None
+canvas = None
 
 
 def pay_attention(event):
@@ -89,7 +91,8 @@ def store_patient(first, last, gender, phone, dob):
     end_connection()
 
 def store_ecg():
-    fig.close()
+    #store ecg record
+    return_to_patient_info()
 
 def link_records():
     #make_connection()
@@ -283,9 +286,10 @@ def pg_four():
 
 def return_to_patient_info():
     page = 3
-    bt_retake.pack_forget()
-    bt_save.pack_forget()
-    bt_discard.pack_forget()
+    bt_retake.place_forget()
+    bt_save.place_forget()
+    bt_discard.place_forget()
+    canvas.destroy()
     patient_details_lbl.place(x=280, y=5)
     first_lbl.place(x=130, y=55)
     first_ent.place(x=210, y=55)
@@ -312,34 +316,34 @@ def pg_five():
     page = 5
     run_ecg()
     plot_ecg()
-    bt_retake.pack()
-    bt_save.pack()
-    bt_discard.pack()
+    bt_retake.place(x=5,y=5)
+    bt_save.place(x=145,y=5)
+    bt_discard.place(x=285,y=5)
     link_records()
 
 def plot_ecg():
     global ecg_signal
     global window
-    global fig
-    fig = Figure(figsize = (50,25), dpi = 1000)
-    fig.clf()
+    global plot
+    global canvas
+    matplotlib.use('TkAgg')
+    fig = Figure(figsize = (8,4), dpi = 100)
     t = [i/360 for i in range(3601)]
     x = ecg_signal
     plot = fig.add_subplot(111)
-    plot.plot(x,t)
+    plot.plot(t, x, color='red')
+    plot.set_xlabel("Time [s]")
+    plot.set_ylabel("Voltage [mV]")
 
-    canvas =FigureCanvasTkAgg(fig, master = window)
+    canvas = FigureCanvasTkAgg(fig, master = window)
     canvas.draw()
-    canvas.get_tk_widget().pack()
-    toolbar = NavigationToolbar2Tk(canvas,window)
-    toolbar.update()
-    canvas.get_tk_widget().pack()
+    canvas.get_tk_widget().place(x=0,y=50)
 
 def run_ecg():
     pass
 
 def redo_ecg():
-    fig.close()
+    canvas.destroy()
     run_ecg()
     plot_ecg()
 
@@ -428,20 +432,20 @@ bt_ecg = tk.Button(
 
 bt_retake = tk.Button(
     text="Retake",
-    width=20,
-    height = 5,
+    width=10,
+    height = 2,
     command = redo_ecg
 )
 bt_save = tk.Button(
     text="Save",
-    width=20,
-    height = 5,
+    width=10,
+    height = 2,
     command = store_ecg
 )
 bt_discard = tk.Button(
     text="Discard",
-    width=20,
-    height = 5,
+    width=10,
+    height = 2,
     command = discard
 )
 
