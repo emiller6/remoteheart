@@ -1,5 +1,5 @@
+%%AFib Classification
 %%Sampling rate is 128 Hz, each record has 65,536 samples
-%%Initial diagnoses: arrhythmia, congestive heart failure, and normal sinus rhythm
 
 %%Based on https://www.mathworks.com/help/wavelet/ug/classify-time-series-using-wavelet-analysis-and-deep-learning.html?searchHighlight=ecg%20machine%20learning&s_tid=srchtitle_ecg%20machine%20learning_24
 load('github_repo/ECGData/ECGData.mat');
@@ -11,9 +11,9 @@ load('github_repo/ECGData/ECGData.mat');
 
 ECGData.Data = [ECGData.Data; afib];
 ECGData.Labels = [ECGData.Labels; lbls];
-if ~exist('github_repo/ECGData/data', 'dir')
-    helperCreateECGDirectories(ECGData, 'github_repo/ECGData', 'data');
-end
+%if ~exist('github_repo/ECGData/data', 'dir')
+helperCreateECGDirectories(ECGData, 'github_repo/ECGData', 'data');
+%end
 helperPlotReps(ECGData)
 
 %Time-Frequency Representations
@@ -97,51 +97,3 @@ trainedSN = trainNetwork(augimgsTrain,squeeze_graph,opts);
 [YPred,probs] = classify(trainedSN,augimgsValidation);
 accuracy = mean(YPred==imgsValidation.Labels);
 disp(['SqueezeNet Accuracy: ',num2str(100*accuracy),'%'])
-
-function helperCreateECGDirectories(ECGData,parentFolder,dataFolder)
-%creates data directory and then makes subdirectories for each class of ecg signal
-  rootFolder = parentFolder;
-  localFolder = dataFolder;
-  mkdir(fullfile(rootFolder,localFolder))
-
-  folderLabels = unique(ECGData.Labels);
-  for i = 1:numel(folderLabels)
-      mkdir(fullfile(rootFolder,localFolder,char(folderLabels(i))));
-  end
-end
-
-function helperPlotReps(ECGData)
-% Plots the first thousand samples of representative of each class
-  folderLabels = unique(ECGData.Labels);
-
-  for k=1:3
-      ecgType = folderLabels{k};
-      ind = find(ismember(ECGData.Labels,ecgType));
-      subplot(3,1,k)
-      plot(ECGData.Data(ind(1),1:1000));
-      grid on
-      title(ecgType)
-  end
-end
-
-function helperCreateRGBfromTF(ECGData,parentFolder,childFolder)
-%continuous wavelet transform of the ECG signals and generates the scalograms from the wavelet coefficients
-  imageRoot = fullfile(parentFolder,childFolder);
-
-  data = ECGData.Data;
-  labels = ECGData.Labels;
-
-  [~,signalLength] = size(data);
-
-  fb = cwtfilterbank('SignalLength',signalLength,'VoicesPerOctave',12);
-  r = size(data,1);
-
-  for ii = 1:r
-      cfs = abs(fb.wt(data(ii,:)));
-      im = ind2rgb(im2uint8(rescale(cfs)),jet(128));
-
-      imgLoc = fullfile(imageRoot,char(labels(ii)));
-      imFileName = strcat(char(labels(ii)),'_',num2str(ii),'.jpg');
-      imwrite(imresize(im,[224 224]),fullfile(imgLoc,imFileName));
-  end
-end
