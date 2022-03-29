@@ -507,13 +507,13 @@ greeting = tk.Label(
     text="Welcome!\n\n Let's get started with your ECG.",
     width=100,
     height = 7,
-    font=("Gill Sans Light",40)
+    font=("Roboto Slab Light",30)
     )
 clinic_login = tk.Label(
     text="\n\n\nPlease enter your Clinic ID.\n",
     width=100,
-    height=5,
-    font=("Gill Sans Light", 30)
+    height=3,
+    font=("Roboto Slab Light", 30)
     )
 bt_start = tk.Button(
     text="Begin",
@@ -521,12 +521,12 @@ bt_start = tk.Button(
     height = 2,
     fg='white',
     highlightbackground='navy blue',
-    font=("Gill Sans SemiBold",20),
+    font=("Roboto Slab SemiBold",20),
     command = pg_two
 )
 clinic_id_submit = tk.Button(
     text="Submit",
-    font=("Gill Sans SemiBold",20),
+    font=("Roboto Slab SemiBold",20),
     fg='white',
     highlightbackground='navy blue',
     width=20,
@@ -535,7 +535,7 @@ clinic_id_submit = tk.Button(
 )
 patient_info_submit = tk.Button(
     text="Submit",
-    font=("Gill Sans SemiBold",20),
+    font=("Roboto Slab SemiBold",20),
     width=20,
     height = 2,
     command = pg_four
@@ -546,7 +546,7 @@ clinic_id_entry.bind("<FocusIn>", pay_attention)
 patient_details_lbl = tk.Label(text="Patient Information",
     width=0,
     height=0,
-    font=("Gill Sans Light", 30)
+    font=("Roboto Slab Light", 30)
     )
 #font=("Gill Sans SemiBold",20),
 first_lbl = tk.Label(text="First name:")
@@ -565,7 +565,7 @@ dob_lbl = tk.Label(text="Date of Birth (MMDDYYYY):")
 dob_ent = tk.Entry(width=10)
 dob_ent.bind("<FocusIn>", pay_attention)
 address_lbl = tk.Label(text="Address:")
-address_txt = tk.Text(width=50, height=3)
+address_txt = tk.Text(width=40, height=3)
 address_txt.bind("<FocusIn>", pay_attention)
 
 ecg_lbl = tk.Label(text="Please connect the probes to the patient and click below to begin the ECG reading.")
