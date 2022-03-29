@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import matplotlib.pyplot
 import numpy
-import matlab.engine
+#import matlab.engine
 
 conn = None
 cur = None
@@ -29,7 +29,7 @@ plot = None
 canvas = None
 in_existing = False
 in_new = False
-eng = matlab.engine.start_matlab()
+#eng = matlab.engine.start_matlab()
 
 def return_to_main_screen():
     global clinic_id
@@ -479,7 +479,7 @@ def run_ecg():
     #ecg_signal = List()
     #need to control sample speed
     #for i in range(655637):
-        #value = adc.read(channel = 0)
+        #value = adc.read(channel = 0) MISO GPIO09
         #ecg_signal.append(value/1023.0 * 3.3)
         #time.sleep(1/360)
     make_connection()
