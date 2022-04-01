@@ -8,10 +8,10 @@ function [ml_res] = analyzeECG(ecgsignal)
     if(isempty(net))
         %net = coder.loadDeepLearningNetwork('finalNet.mat');
         load('finalNet.mat');
-        net = trainNet;
+        net = trainedGN;
     end
 
-    image = helperCreateRGBfromTF(signal, jetdata);
+    image = helperCreateRGBfromTF(signal);
 
     % Prediction
     [ml_res] = predict(net,image);
@@ -23,13 +23,11 @@ function image = helperCreateRGBfromTF(data)
   [~,signalLength] = size(data);
 
   if isempty(fb)
-    %check VoicesPerOctave value here
     fb = cwtfilterbank('SignalLength',signalLength,'VoicesPerOctave',12);
   end
 
   cfs = abs(fb.wt(data));
   im = ind2rgb(im2uint8(rescale(cfs)),jet(128));
-  %adjust dimensions based on if squeezenet or googlenet used (s = 227, g = 224)
   im = im2uint8(imresize(im,[224 224]));
 end
 

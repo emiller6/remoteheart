@@ -10,14 +10,15 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import matplotlib.pyplot
 import numpy
-#import matlab.engine
+from MCP3008 import MCP3008
+import matlab.engine
 
 conn = None
 cur = None
 clinic_id = None
 patient_id = None
 ecg_id = None
-ecg_signal = [i/100 for i in range(65537)]
+ecg_signal = [0 for i in range(65537)]
 dt = None
 focused_entry = None
 page = 1
@@ -29,7 +30,7 @@ plot = None
 canvas = None
 in_existing = False
 in_new = False
-#eng = matlab.engine.start_matlab()
+eng = matlab.engine.start_matlab()
 
 def return_to_main_screen():
     global clinic_id
@@ -186,9 +187,9 @@ def store_patient(first, last, gender, phone, dob, address):
     end_connection()
 
 def analyze_ecg():
-    #ml_res = eng.analyzeECG(ecg_signal,nargout=1)
-    #return ml_res
-    pass
+    ml_res = eng.analyzeECG(ecg_signal,nargout=1)
+    return ml_res
+    #pass
 
 def store_ecg():
     #store ecg record
@@ -202,8 +203,9 @@ def store_ecg():
     bt_discard.place_forget()
     canvas.get_tk_widget().destroy()
     load_screen.pack()
-    ml_res = [0, 0, 0, 0, 0]
-    #ml_res = analyze_ecg()
+    #ml_res = []
+    ml_res = analyze_ecg()
+    print(ml_res)
     make_connection()
     sql = "INSERT INTO ECG_Reading(reading, date_time_taken, ml_res) VALUES (%s, %s, %s) RETURNING ecg_id"
     cur.execute(sql, (ecg_signal,dt, ml_res))
@@ -460,33 +462,37 @@ def plot_ecg():
     global window
     global plot
     global canvas
+    window.configure(bg='white')
     matplotlib.use('TkAgg')
     fig = Figure(figsize = (8,4), dpi = 100)
-    t = [i/128 for i in range(65537)]
-    x = ecg_signal
+    t = [i/128 for i in range(258)]
+    x = ecg_signal[0:257]
     plot = fig.add_subplot(111)
     plot.plot(t, x, color='red')
     plot.set_xlabel("Time [s]")
-    plot.set_ylabel("Voltage [mV]")
+    plot.set_ylabel("Voltage [V]")
+    plot.set_xlim([0,2])
 
     canvas = FigureCanvasTkAgg(fig, master = window)
     canvas.draw()
     canvas.get_tk_widget().place(x=0,y=50)
 
 def run_ecg():
+    wait_screen.pack()
     global dt
     global ecg_signal
-    #ecg_signal = List()
-    #need to control sample speed
-    #for i in range(655637):
-        #value = adc.read(channel = 0) MISO GPIO09
-        #ecg_signal.append(value/1023.0 * 3.3)
-        #time.sleep(1/360)
+    adc = MCP3008()
+    for i in range(65537):
+        value = adc.read(channel = 0)
+        voltage = value / 1023.0 * 3.3
+        ecg_signal[i] = voltage
+        time.sleep(1/128)
     make_connection()
     cur.execute("select current_timestamp")
     dt = cur.fetchone()[0]
     conn.commit()
     end_connection()
+    wait_screen.pack_forget()
 
 
 def redo_ecg():
@@ -610,6 +616,13 @@ new_p = tk.Button(
 
 load_screen = tk.Label(
     text="Saving ECG...\nPlease Wait",
+    width=100,
+    height = 7,
+    font=("Gill Sans Light",40)
+    )
+
+wait_screen = tk.Label(
+    text="Collecting ECG...\nPlease Remain As Still As Possible",
     width=100,
     height = 7,
     font=("Gill Sans Light",40)
