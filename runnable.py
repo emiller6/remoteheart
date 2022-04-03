@@ -9,6 +9,7 @@ import psycopg2
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import matplotlib.pyplot
+from matplotlib import animation
 import numpy
 from MCP3008 import MCP3008
 import matlab.engine
@@ -30,6 +31,7 @@ plot = None
 canvas = None
 in_existing = False
 in_new = False
+anim = None
 eng = matlab.engine.start_matlab()
 
 def return_to_main_screen():
@@ -462,20 +464,39 @@ def plot_ecg():
     global window
     global plot
     global canvas
+    global anim
     window.configure(bg='white')
     matplotlib.use('TkAgg')
     fig = Figure(figsize = (8,4), dpi = 100)
-    t = [i/128 for i in range(258)]
-    x = ecg_signal[0:257]
+    t = []
+    x = []
     plot = fig.add_subplot(111)
-    plot.plot(t, x, color='red')
+    line, = plot.plot([], [], color='red')
     plot.set_xlabel("Time [s]")
     plot.set_ylabel("Voltage [V]")
-    plot.set_xlim([0,2])
+    plot.set_xlim([0,3])
+    plot.set_ylim([1,3])
 
     canvas = FigureCanvasTkAgg(fig, master = window)
     canvas.draw()
     canvas.get_tk_widget().place(x=0,y=50)
+    global curr
+    curr = 0
+    def init():
+        line.set_data([],[])
+        return line,
+    def animate(j):
+        global curr
+        global ecg_signal
+        #x = numpy.linspace(0, 2, 1000)
+        #y = numpy.sin(2 * numpy.pi * (x - 0.01 * i))+2
+        i = curr
+        t.append((i-1)/128)
+        x.append(ecg_signal[i])
+        line.set_data(t, x)
+        curr = curr + 1
+        return line,
+    anim = animation.FuncAnimation(fig, animate, init_func = init, frames = 20, interval = 20, blit = True)
 
 def run_ecg():
     wait_screen.pack()
