@@ -152,6 +152,9 @@ def check_clinic_id():
     return 0
 
 def find_patient(first, last, phone, dob):
+    global cur
+    global conn
+    global patient_id
     make_connection()
     cur.execute("SELECT patient_id FROM Patient WHERE first_name = %s AND last_name = %s AND dob = %s AND phone = %s", (first, last, psycopg2.Date(int(dob[4:8]), int(dob[0:2]), int(dob[2:4])), phone))
     res = cur.fetchone()
