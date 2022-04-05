@@ -12,14 +12,15 @@ import matplotlib.pyplot
 from matplotlib import animation
 import numpy
 from MCP3008 import MCP3008
-import matlab.engine
+import subprocess
+#import matlab.engine
 
 conn = None
 cur = None
 clinic_id = None
 patient_id = None
 ecg_id = None
-ecg_signal = [0 for i in range(65537)]
+ecg_signal = [0 for i in range(23040)]
 dt = None
 focused_entry = None
 page = 1
@@ -32,7 +33,7 @@ canvas = None
 in_existing = False
 in_new = False
 anim = None
-eng = matlab.engine.start_matlab()
+#eng = matlab.engine.start_matlab()
 
 def return_to_main_screen():
     global clinic_id
@@ -50,7 +51,7 @@ def return_to_main_screen():
     clinic_id = None
     patient_id = None
     ecg_id = None
-    ecg_signal = [i/100 for i in range(65537)]
+    ecg_signal = [0 for i in range(23040)]
     dt = None
     exists = False
     error_called = False
@@ -124,7 +125,10 @@ def pay_attention(event):
     keyboard_window.lift(aboveThis=None)
 
 def shutdown():
-    os.system("sudo shutdown -h now")
+    command = "/usr/bin/sudo /sbin/shutdown -h now"
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    output = process.communicate()[0]
+    print(output)
 
 def make_connection():
     global conn
@@ -192,8 +196,16 @@ def store_patient(first, last, gender, phone, dob, address):
     end_connection()
 
 def analyze_ecg():
-    ml_res = eng.analyzeECG(ecg_signal,nargout=1)
-    return ml_res
+    #ml_res = eng.analyzeECG(ecg_signal,nargout=1)
+    global ecg_signal
+    signal = ecg_signal[0:1280]
+    numpy.savetxt('MATLAB_ws/R2021a/signal.csv', signal , delimiter=",")
+    res = subprocess.Popen(["./analyzeECG.elf","signal.csv"],cwd="MATLAB_ws/R2021a/",stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+    (ml_res,err) = res.communicate(b'signal.csv')
+    output = open('./MATLAB_ws/R2021a/results.txt','r')
+    ml_res = output.readlines()[2]
+    output.close()
+    return ml_res.split()
     #pass
 
 def store_ecg():
@@ -213,9 +225,11 @@ def store_ecg():
     print(ml_res)
     make_connection()
     sql = "INSERT INTO ECG_Reading(reading, date_time_taken, ml_res) VALUES (%s, %s, %s) RETURNING ecg_id"
-    cur.execute(sql, (ecg_signal,dt, ml_res))
+    signal = [a*1000 for a in ecg_signal]
+    cur.execute(sql, (signal,dt, ml_res))
     ecg_id = cur.fetchone()[0]
     conn.commit()
+    print(ecg_id)
     end_connection()
     link_records()
     load_screen.pack_forget()
@@ -275,8 +289,7 @@ def build_keyboard(root):
         ['`',"1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "delete"],
         ['tab',"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",'\\'],
         ["A", "S", "D", "F", "G", "H", "J", "K", "L",';',"'",'return'],
-        ["caps lock", "Z", "X", "C", "V", "B", "N", "M", ',', '.', '/'],
-        ['space']
+        ["caps lock", "Z", "X", "C", "V", "B", "N", "M", ',', '.', '/','space'],
     ]
     global keyboard_window
     keyboard_window = tk.Toplevel(root)
@@ -290,16 +303,15 @@ def build_keyboard(root):
         for key in row_cont:
             columnspan = 1
             if key == "tab" or key == "delete":
-                width = 4
+                width = 5
             elif key == "caps lock" or key == "return":
-                width = 4
+                width = 5
             elif key == "shift":
-                width = 4
+                width = 5
             elif key == "space":
-                width = 80
-                columnspan = 12
+                width = 5
             else:
-                width = 3
+                width = 4
             tk.Button(keyboard_window, text=key, width=width, command=lambda value=key: type(value), bg="white", fg="black", takefocus = False).grid(row=row_num, column=col, columnspan=columnspan)
             col += columnspan
 
@@ -455,6 +467,7 @@ def pg_five():
     global page
     ecg_lbl.pack_forget()
     bt_ecg.pack_forget()
+    wait_screen.pack()
     page = 5
     run_ecg()
     plot_ecg()
@@ -502,13 +515,13 @@ def plot_ecg():
     anim = animation.FuncAnimation(fig, animate, init_func = init, frames = 20, interval = 20, blit = True)
 
 def run_ecg():
-    wait_screen.pack()
     global dt
     global ecg_signal
     adc = MCP3008()
-    for i in range(65537):
+    for i in range(23040):
         value = adc.read(channel = 0)
         voltage = value / 1023.0 * 3.3
+        print(voltage)
         ecg_signal[i] = voltage
         time.sleep(1/128)
     make_connection()
