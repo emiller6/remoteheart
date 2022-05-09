@@ -38,3 +38,6 @@ ADC Reading Tutorials:
 https://tutorials-raspberrypi.com/mcp3008-read-out-analog-signals-on-the-raspberry-pi/
 https://learn.adafruit.com/raspberry-pi-analog-to-digital-converters/mcp3008
 
+Virtual Keyboard Sample Code:
+https://stackoverflow.com/questions/60136473/how-to-call-and-close-a-virtual-keyboard-made-by-tkinter-using-touchscreen-displ
+https://stackoverflow.com/questions/45237883/tkinter-check-which-entry-last-had-focus
